@@ -91,7 +91,7 @@ export function OnPageTab({ data }: { data: OnPageAudit }) {
             ))}
           </div>
           <p className="text-xs text-muted-foreground mt-3">
-            ⚠ Densité {'>'} 3% peut être considérée comme du keyword stuffing
+            ⚠ Densité 3% peut être considérée comme du keyword stuffing
           </p>
         </div>
       )}
