@@ -8,8 +8,10 @@ export async function connectDB() {
   if (g.mongoose.conn) return g.mongoose.conn
   if (!g.mongoose.promise) {
     g.mongoose.promise = mongoose.connect(MONGODB_URI, {
-    bufferCommands: false,
-})
+      bufferCommands: false,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 10000,
+    })
   }
   g.mongoose.conn = await g.mongoose.promise
   return g.mongoose.conn
