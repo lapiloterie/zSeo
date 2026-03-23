@@ -10,12 +10,6 @@ export function NewAuditForm() {
   const [gscSiteUrl, setGscSiteUrl] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [showAdvanced, setShowAdvanced] = useState(false)
-  // New options
-  const [crawlDepth, setCrawlDepth] = useState<number>(1)
-  const [targetLang, setTargetLang] = useState('fr')
-  const [device, setDevice] = useState<'mobile' | 'desktop'>('mobile')
-  const [targetKeyword, setTargetKeyword] = useState('')
 
   useEffect(() => {
     fetch('/api/gsc').then(r => r.json()).then(d => { if (d.sites) setGscSites(d.sites) }).catch(() => {})
@@ -25,9 +19,7 @@ export function NewAuditForm() {
     e.preventDefault()
     setError('')
     if (!url) { setError('Veuillez entrer une URL'); return }
-    let finalUrl = url.trim()
-// Nettoyer les doubles préfixes
-    finalUrl = finalUrl.replace(/^(https?:\/\/)+/, 'https://')
+    let finalUrl = url.trim().replace(/^(https?:\/\/)+/, 'https://')
     if (!finalUrl.startsWith('http')) finalUrl = 'https://' + finalUrl
     setLoading(true)
     try {
@@ -38,10 +30,6 @@ export function NewAuditForm() {
           url: finalUrl,
           gscSiteUrl: gscSiteUrl || undefined,
           competitorUrl: competitorUrl || undefined,
-          crawlDepth,
-          targetLang,
-          device,
-          targetKeyword: targetKeyword || undefined,
         }),
       })
       const data = await res.json()
@@ -63,63 +51,6 @@ export function NewAuditForm() {
           className="w-full bg-secondary border border-border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-muted-foreground" />
       </div>
 
-      {/* Mot-clé cible */}
-      <div>
-        <label className="text-sm font-medium mb-1.5 block">
-          Mot-clé cible <span className="text-muted-foreground font-normal">(optionnel)</span>
-        </label>
-        <input type="text" value={targetKeyword} onChange={e => setTargetKeyword(e.target.value)}
-          placeholder="ex: audit seo automatique"
-          className="w-full bg-secondary border border-border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-muted-foreground" />
-        <p className="text-xs text-muted-foreground mt-1">Analyse la densité, position dans title/H1/URL</p>
-      </div>
-
-      {/* Device + Langue */}
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="text-sm font-medium mb-1.5 block">Device prioritaire</label>
-          <div className="flex gap-2">
-            {(['mobile', 'desktop'] as const).map(d => (
-              <button key={d} type="button" onClick={() => setDevice(d)}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${device === d ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'}`}>
-                {d === 'mobile' ? '📱 Mobile' : '🖥️ Desktop'}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div>
-          <label className="text-sm font-medium mb-1.5 block">Langue cible</label>
-          <select value={targetLang} onChange={e => setTargetLang(e.target.value)}
-            className="w-full bg-secondary border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
-            <option value="fr">🇫🇷 Français</option>
-            <option value="en">🇬🇧 English</option>
-            <option value="es">🇪🇸 Español</option>
-            <option value="de">🇩🇪 Deutsch</option>
-            <option value="it">🇮🇹 Italiano</option>
-            <option value="pt">🇵🇹 Português</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Profondeur de crawl */}
-      <div>
-        <label className="text-sm font-medium mb-1.5 block">
-          Profondeur d'analyse
-          <span className="ml-2 text-muted-foreground font-normal">({crawlDepth} page{crawlDepth > 1 ? 's' : ''})</span>
-        </label>
-        <div className="flex gap-2">
-          {[1, 3, 5].map(d => (
-            <button key={d} type="button" onClick={() => setCrawlDepth(d)}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${crawlDepth === d ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'}`}>
-              {d === 1 ? '1 page' : `${d} pages`}
-            </button>
-          ))}
-        </div>
-        {crawlDepth > 1 && (
-          <p className="text-xs text-amber-400 mt-1">⚠ L'analyse multi-pages peut prendre 1-3 minutes</p>
-        )}
-      </div>
-
       {/* GSC */}
       {gscSites.length > 0 && (
         <div>
@@ -131,25 +62,20 @@ export function NewAuditForm() {
             <option value="">— Sélectionner un site —</option>
             {gscSites.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
+          <p className="text-xs text-muted-foreground mt-1">Active les données réelles Google Search Console</p>
         </div>
       )}
 
-      {/* Options avancées */}
-      <button type="button" onClick={() => setShowAdvanced(!showAdvanced)}
-        className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-        <span>{showAdvanced ? '▼' : '▶'}</span> Options avancées
-      </button>
-
-      {showAdvanced && (
-        <div>
-          <label className="text-sm font-medium mb-1.5 block">
-            URL concurrent <span className="text-muted-foreground font-normal">(optionnel)</span>
-          </label>
-          <input type="text" value={competitorUrl} onChange={e => setCompetitorUrl(e.target.value)}
-            placeholder="https://concurrent.com"
-            className="w-full bg-secondary border border-border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-muted-foreground" />
-        </div>
-      )}
+      {/* Concurrent */}
+      <div>
+        <label className="text-sm font-medium mb-1.5 block">
+          URL concurrent <span className="text-muted-foreground font-normal">(optionnel)</span>
+        </label>
+        <input type="text" value={competitorUrl} onChange={e => setCompetitorUrl(e.target.value)}
+          placeholder="https://concurrent.com"
+          className="w-full bg-secondary border border-border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-muted-foreground" />
+        <p className="text-xs text-muted-foreground mt-1">Compare votre site avec un concurrent</p>
+      </div>
 
       {error && <p className="text-red-400 text-sm">{error}</p>}
 

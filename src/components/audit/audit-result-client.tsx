@@ -8,14 +8,12 @@ import { GSCTab } from './gsc-tab'
 import { RecommendationsTab } from './recommendations-tab'
 import { ChecklistTab } from './checklist-tab'
 import { CompetitorTab } from './competitor-tab'
-import { AdvancedTab } from './advanced-tab'
 import { cn, getScoreColor } from '@/lib/utils'
 
 const TABS = [
   { id:'overview', label:'Vue d\'ensemble' },
   { id:'technical', label:'Technique' },
   { id:'onpage', label:'On-Page' },
-  { id:'advanced', label:'Avancé 🔬' },
   { id:'gsc', label:'Search Console' },
   { id:'recommendations', label:'Recommandations' },
   { id:'checklist', label:'Checklist' },
@@ -47,17 +45,13 @@ export function AuditResultClient({ audit: initialAudit }: { audit: AuditResult 
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-xl font-bold truncate">{audit.url.replace(/^https?:\/\//, '')}</h1>
-          <div className="flex items-center gap-3 mt-1 flex-wrap">
-            <p className="text-sm text-muted-foreground">{new Date(audit.createdAt).toLocaleDateString('fr-FR', { dateStyle:'long' })}</p>
-            {a.targetKeyword && <span className="text-xs bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-2 py-0.5 rounded-full">🎯 {a.targetKeyword}</span>}
-            {a.device && <span className="text-xs bg-secondary text-muted-foreground px-2 py-0.5 rounded-full">{a.device === 'mobile' ? '📱' : '🖥️'} {a.device}</span>}
-            {a.crawlDepth > 1 && <span className="text-xs bg-secondary text-muted-foreground px-2 py-0.5 rounded-full">🕷️ {a.crawlDepth} pages</span>}
-          </div>
+          <p className="text-sm text-muted-foreground mt-1">{new Date(audit.createdAt).toLocaleDateString('fr-FR', { dateStyle:'long' })}</p>
         </div>
         <StatusBadge status={audit.status} />
       </div>
 
-      {isLoading && <LoadingCard crawlDepth={a.crawlDepth} />}
+      {isLoading && <LoadingCard />}
+
       {audit.status === 'failed' && (
         <div className="glass rounded-xl p-6 border border-red-500/20 text-center">
           <p className="text-red-400 font-medium">❌ L'audit a échoué</p>
@@ -88,25 +82,6 @@ export function AuditResultClient({ audit: initialAudit }: { audit: AuditResult 
             ))}
           </div>
 
-          {/* E-E-A-T mini badge */}
-          {a.eeatScore && (
-            <div className="flex items-center gap-3 glass rounded-xl px-5 py-3">
-              <span className="text-sm font-medium">⭐ Score E-E-A-T</span>
-              <div className="flex-1 bg-secondary rounded-full h-2">
-                <div className={`h-2 rounded-full ${a.eeatScore.score>=70?'bg-emerald-500':a.eeatScore.score>=40?'bg-amber-500':'bg-red-500'}`} style={{width:`${a.eeatScore.score}%`}} />
-              </div>
-              <span className={`font-bold ${a.eeatScore.score>=70?'text-emerald-400':a.eeatScore.score>=40?'text-amber-400':'text-red-400'}`}>{a.eeatScore.score}/100</span>
-              {a.techStack?.detected?.length > 0 && (
-                <div className="flex items-center gap-2 ml-4 pl-4 border-l border-border">
-                  <span className="text-xs text-muted-foreground">🛠️ Stack :</span>
-                  {a.techStack.detected.slice(0,3).map((t: string) => (
-                    <span key={t} className="text-xs bg-secondary px-2 py-0.5 rounded border border-border">{t}</span>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
           {/* Tabs */}
           <div className="flex gap-1 border-b border-border overflow-x-auto">
             {TABS.map(tab => (
@@ -133,16 +108,6 @@ export function AuditResultClient({ audit: initialAudit }: { audit: AuditResult 
             {activeTab === 'overview' && <OverviewTab audit={audit} />}
             {activeTab === 'technical' && audit.technicalData && <TechnicalTab data={audit.technicalData} />}
             {activeTab === 'onpage' && audit.onPageData && <OnPageTab data={audit.onPageData} />}
-            {activeTab === 'advanced' && (
-              <AdvancedTab data={{
-                urlAnalysis: a.urlAnalysis,
-                imagePerformance: a.imagePerformance,
-                techStack: a.techStack,
-                eeatScore: a.eeatScore,
-                keywordAnalysis: a.keywordAnalysis,
-                crawlResults: a.crawlResults,
-              }} />
-            )}
             {activeTab === 'gsc' && <GSCTab data={audit.gscData} />}
             {activeTab === 'recommendations' && audit.recommendations && <RecommendationsTab recs={audit.recommendations as any} />}
             {activeTab === 'checklist' && audit.checklist && <ChecklistTab items={audit.checklist as any} />}
@@ -155,7 +120,6 @@ export function AuditResultClient({ audit: initialAudit }: { audit: AuditResult 
 }
 
 function OverviewTab({ audit }: { audit: AuditResult }) {
-  const a = audit as any
   const highPrio = (audit.recommendations as any[] || []).filter(r => r.priority === 'high')
   const checklistPassed = (audit.checklist as any[] || []).filter((c:any) => c.passed).length
   const checklistTotal = (audit.checklist as any[] || []).length
@@ -172,8 +136,6 @@ function OverviewTab({ audit }: { audit: AuditResult }) {
         {audit.onPageData?.structuredData && <Check text="Données structurées JSON-LD" />}
         {(audit.onPageData as any)?.ogComplete && <Check text="Open Graph complet" />}
         {audit.technicalData?.brokenLinks?.length === 0 && <Check text="Aucun lien brisé" />}
-        {a.eeatScore?.score >= 60 && <Check text={`E-E-A-T correct (${a.eeatScore.score}/100)`} />}
-        {a.techStack?.detected?.length > 0 && <Check text={`Technologies : ${a.techStack.detected.slice(0,2).join(', ')}`} />}
         {checklistTotal > 0 && (
           <div className="mt-3 pt-3 border-t border-border">
             <p className="text-sm font-medium">Checklist : {checklistPassed}/{checklistTotal}</p>
@@ -204,16 +166,14 @@ function Check({ text }: { text: string }) {
   return <div className="flex items-center gap-2 text-sm"><span className="text-emerald-400">✓</span><span>{text}</span></div>
 }
 
-function LoadingCard({ crawlDepth }: { crawlDepth: number }) {
+function LoadingCard() {
   return (
     <div className="glass rounded-2xl p-10 text-center">
       <div className="w-12 h-12 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
-      <p className="font-semibold">Analyse approfondie en cours...</p>
-      <p className="text-sm text-muted-foreground mt-2">
-        {crawlDepth > 1 ? `Crawl de ${crawlDepth} pages + ` : ''}Technique · On-Page · E-E-A-T · Tech Stack · Search Console
-      </p>
+      <p className="font-semibold">Analyse SEO en cours...</p>
+      <p className="text-sm text-muted-foreground mt-2">Technique · On-Page · Core Web Vitals · Search Console</p>
       <div className="flex justify-center flex-wrap gap-2 mt-6">
-        {['HTTPS','PageSpeed','E-E-A-T','Tech Stack','Images','Schema','GSC','Crawl'].map(s => (
+        {['HTTPS','Sitemap','Liens','Title','Meta','H1','Images','GSC'].map(s => (
           <span key={s} className="glass text-xs px-3 py-1 rounded-full text-muted-foreground animate-pulse">{s}</span>
         ))}
       </div>
