@@ -287,14 +287,15 @@ export function analyzeKeyword(html: string, url: string, keyword: string): Keyw
 // ─── CRAWL MULTI-PAGES ────────────────────────────────────────────────────────
 
 export async function crawlPages(baseUrl: string, maxPages: number): Promise<CrawlPageResult[]> {
-  if (maxPages <= 1) return []
+  const limit = Math.min(maxPages, 5) // Max 5 pages sur Vercel plan gratuit
+  if (limit <= 1) return []
 
   const visited = new Set<string>()
   const queue: string[] = [baseUrl]
   const results: CrawlPageResult[] = []
   const host = new URL(baseUrl).hostname
 
-  while (queue.length > 0 && results.length < maxPages) {
+  while (queue.length > 0 && results.length < limit) {
     const url = queue.shift()!
     if (visited.has(url)) continue
     visited.add(url)
@@ -330,7 +331,7 @@ export async function crawlPages(baseUrl: string, maxPages: number): Promise<Cra
       })
 
       // Add new internal links to queue
-      if (results.length < maxPages) {
+      if (results.length < limit) {
         $('a[href]').each((_, el) => {
           try {
             const href = $(el).attr('href') || ''

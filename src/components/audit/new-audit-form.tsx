@@ -106,7 +106,7 @@ export function NewAuditForm() {
           <span className="ml-2 text-muted-foreground font-normal">({crawlDepth} page{crawlDepth > 1 ? 's' : ''})</span>
         </label>
         <div className="flex gap-2">
-          {[1, 5, 10, 20].map(d => (
+          {[1, 3, 5].map(d => (
             <button key={d} type="button" onClick={() => setCrawlDepth(d)}
               className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${crawlDepth === d ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'}`}>
               {d === 1 ? '1 page' : `${d} pages`}
