@@ -24,9 +24,9 @@ export async function analyzeOnPage(url: string): Promise<OnPageAudit> {
   const title = $('title').first().text().trim() || null
   const metaDescription = $('meta[name="description"]').attr('content')?.trim() || null
   const h1: string[] = [], h2: string[] = [], h3: string[] = []
-  $('h1').each((_, el) => h1.push($(el).text().trim()))
-  $('h2').each((_, el) => h2.push($(el).text().trim()))
-  $('h3').each((_, el) => h3.push($(el).text().trim()))
+  $('h1').each((_, el) => { h1.push($(el).text().trim()) })
+  $('h2').each((_, el) => { h2.push($(el).text().trim()) })
+  $('h3').each((_, el) => { h3.push($(el).text().trim()) })
   const canonicalUrl = $('link[rel="canonical"]').attr('href') || null
 
   // OG Tags
@@ -487,7 +487,7 @@ export async function analyzeCompetitor(url: string) {
     const bodyText = $('body').text().replace(/\s+/g, ' ').trim()
     const wordCount = bodyText.split(' ').filter(Boolean).length
     const h1: string[] = []
-    $('h1').each((_, el) => h1.push($(el).text().trim()))
+    $('h1').each((_, el) => { h1.push($(el).text().trim()) })
     const isHttps = url.startsWith('https')
     return {
       url,
