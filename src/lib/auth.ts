@@ -7,6 +7,7 @@ const client = new MongoClient(process.env.MONGODB_URI!)
 const clientPromise = client.connect()
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  trustHost: true,
   adapter: MongoDBAdapter(clientPromise, { databaseName: 'zSeo' }),
   providers: [
     Google({
